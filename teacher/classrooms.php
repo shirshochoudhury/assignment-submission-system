@@ -136,7 +136,7 @@ $classrooms = $stmt->fetchAll();
                         <hr>
                         <div class="d-flex justify-content-between">
                             <span class="stat-badge"><i class="fas fa-users"></i> <?php echo $class['student_count']; ?> students</span>
-                            <span class="stat-badge"><i class="fas fa-tasks"></i> <?php echo $class['assignment_count']; }} assignments</span>
+                            <span class="stat-badge"><i class="fas fa-tasks"></i> <?php echo $class['assignment_count']; ?> assignments</span>
                         </div>
                         <hr>
                         <div class="d-flex gap-2">

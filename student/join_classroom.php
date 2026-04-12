@@ -125,7 +125,7 @@ $myClasses = $stmt->fetchAll();
                                 <?php echo $class['semester']; ?>
                             </p>
                             <p><small><i class="fas fa-user"></i> Teacher: <?php echo $class['teacher_name']; ?></small></p>
-                            <p><small><i class="fas fa-tasks"></i> <?php echo $class['assignment_count']; }} assignments</small></p>
+                            <p><small><i class="fas fa-tasks"></i> <?php echo $class['assignment_count']; ?> assignments</small></p>
                         </div>
                         <div>
                             <span class="badge bg-primary">Code: <?php echo $class['class_code']; ?></span>
