@@ -1,13 +1,9 @@
 <?php
 require_once 'includes/config.php';
 
-// Rate limiting
-session_start();
-$ip = $_SERVER['REMOTE_ADDR'];
-$attempt_key = "login_attempts_$ip";
-if(!isset($_SESSION[$attempt_key])) $_SESSION[$attempt_key] = 0;
-if($_SESSION[$attempt_key] >= 5) {
-    die("Too many login attempts. Please try after 15 minutes.");
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -16,18 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $role = $_POST['role'];
     $remember = isset($_POST['remember']);
     
-    // Use password_hash instead of MD5 for production
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role = ?");
     $stmt->execute([$email, $role]);
     $user = $stmt->fetch();
     
-    // Verify password (supports both MD5 and new hash)
     $password_valid = false;
     if($user) {
         if(strlen($user['password']) == 32) {
             $password_valid = ($user['password'] == md5($password));
             if($password_valid) {
-                // Upgrade to new hash
                 $new_hash = password_hash($password, PASSWORD_DEFAULT);
                 $upgrade = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
                 $upgrade->execute([$new_hash, $user['id']]);
@@ -50,12 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$token, $user['id']]);
         }
         
-        // Log activity
-        $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, ip_address, user_agent) VALUES (?, 'login', ?, ?)");
-        $log->execute([$user['id'], $ip, $_SERVER['HTTP_USER_AGENT']]);
-        
-        $_SESSION[$attempt_key] = 0;
-        
         if ($role == 'teacher') {
             header("Location: teacher/dashboard.php");
         } else {
@@ -63,12 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         exit();
     } else {
-        $_SESSION[$attempt_key]++;
-        $error = "Invalid credentials! Attempts: " . $_SESSION[$attempt_key] . "/5";
+        $error = "Invalid email or password!";
     }
 }
 
-// Check remember me cookie
 if(!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE remember_token = ?");
     $stmt->execute([$_COOKIE['remember_token']]);
@@ -150,14 +135,6 @@ if(!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
             transition: transform 0.2s;
         }
         .btn-login:hover { transform: translateY(-2px); }
-        .feature-badge {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 10px;
-            background: #f0f0f0;
-            border-radius: 20px;
-            font-size: 12px;
-        }
         .demo-credentials {
             background: #f8f9fa;
             border-radius: 10px;
